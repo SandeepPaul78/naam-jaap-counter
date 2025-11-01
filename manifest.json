@@ -1,0 +1,20 @@
+{
+  "name": "Jap Counter",
+  "short_name": "Jap",
+  "start_url": "https://your-username.github.io/jap-counter/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
