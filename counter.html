@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Radha Jap Counter</title>
+  <style>
+    :root{
+      --bg:#2e1a30; /* deep devotional maroon */
+      --card:#3b2438;
+      --accent:#ffd7e9;
+      --muted:#e6d6e6;
+      --pill-bg:#ffd7e9;
+      --pill-text:#2e1a30;
+      --glass: rgba(255,255,255,0.06);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#1f1220);
+      color:var(--muted);
+      -webkit-font-smoothing:antialiased;
+      display:flex;align-items:center;justify-content:center;padding:20px;
+    }
+    .app{
+      width:100%;max-width:480px;background:var(--card);border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.4);
+      display:flex;flex-direction:column;gap:12px;align-items:center;
+    }
+    .header{display:flex;align-items:center;justify-content:space-between;width:100%}
+    .title{color:var(--accent);font-weight:700;font-size:18px}
+    .controls{display:flex;gap:10px;align-items:center}
+    .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:8px;font-weight:600;cursor:pointer}
+    .btn-danger{background:#7a163a;color:var(--accent)}
+    .switch{display:inline-flex;align-items:center;gap:8px}
+
+    .tap-area{
+      width:100%;height:360px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .tap-area:active{transform:scale(.997)}
+    .center-image{width:260px;height:330px;object-fit:cover;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.5)}
+    .radha-text{font-size:84px;color:var(--accent);font-weight:900;letter-spacing:6px;text-shadow:0 6px 18px rgba(0,0,0,0.5)}
+
+    .counter-pill{position:absolute;bottom:18px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:var(--pill-bg);color:var(--pill-text);font-weight:800;font-size:24px;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
+
+    .info{font-size:13px;color:rgba(255,215,233,0.9);text-align:center;padding:6px 8px}
+
+    .small{font-size:12px;color:rgba(255,255,255,0.6)}
+
+    .footer{width:100%;display:flex;gap:10px;align-items:center;justify-content:space-between}
+
+    input[type="file"]{display:none}
+    .uploader{background:transparent;border:1px dashed rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:var(--muted);cursor:pointer}
+
+    @media (max-width:420px){
+      .center-image{width:220px;height:280px}
+      .radha-text{font-size:60px}
+      .tap-area{height:320px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Radha Jap Counter">
+    <div class="header">
+      <div class="title">Radha Jap — नाम जप</div>
+      <div class="controls">
+        <button id="toggleMode" class="btn" title="Toggle Image/Text">Image</button>
+        <button id="resetBtn" class="btn btn-danger" title="Reset counter">Reset</button>
+      </div>
+    </div>
+
+    <div id="tapArea" class="tap-area" tabindex="0" aria-pressed="false" role="button">
+      <img id="centerImage" class="center-image" src="https://static-assets-prod.fnp.com/assets/images/custom/app-mob-home-icons/radha-naam-yello.jpg" alt="Radha image" />
+      <div id="radhaText" class="radha-text" style="display:none">RADHA</div>
+
+      <div class="counter-pill" id="counterPill">0</div>
+    </div>
+
+    <div class="info">Tap on the image/text to increase the count. Long-press (press & hold) tap area to reset quickly.</div>
+
+    <div class="footer">
+      <label class="uploader" for="imgUpload">Upload Image</label>
+      <input type="file" id="imgUpload" accept="image/*" />
+      <div style="flex:1"></div>
+      <div class="small">Vibration: <input type="checkbox" id="vibToggle" checked /></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'radha_jap_count_v1';
+      const MODE_KEY = 'radha_jap_mode_v1';
+      const IMAGE_KEY = 'radha_jap_image_v1';
+
+      const tapArea = document.getElementById('tapArea');
+      const counterPill = document.getElementById('counterPill');
+      const resetBtn = document.getElementById('resetBtn');
+      const toggleMode = document.getElementById('toggleMode');
+      const centerImage = document.getElementById('centerImage');
+      const radhaText = document.getElementById('radhaText');
+      const imgUpload = document.getElementById('imgUpload');
+      const vibToggle = document.getElementById('vibToggle');
+
+      let count = 0;
+      let useImage = true;
+      let holdTimer = null;
+      const HOLD_TIME = 800; // ms to consider long press
+
+      // load
+      try { const saved = localStorage.getItem(STORAGE_KEY); if(saved) count = parseInt(saved,10)||0 } catch(e){}
+      try { const m = localStorage.getItem(MODE_KEY); if(m) useImage = m==='image' } catch(e){}
+      try { const img = localStorage.getItem(IMAGE_KEY); if(img) centerImage.src = img } catch(e){}
+
+      function render(){
+        counterPill.textContent = count;
+        if(useImage){ centerImage.style.display='block'; radhaText.style.display='none'; toggleMode.textContent='Image' }
+        else { centerImage.style.display='none'; radhaText.style.display='block'; toggleMode.textContent='Text' }
+      }
+
+      function save(){ try{ localStorage.setItem(STORAGE_KEY,String(count)) }catch(e){} }
+      function saveMode(){ try{ localStorage.setItem(MODE_KEY, useImage? 'image':'text') }catch(e){} }
+
+      function vibrate(ms=10){ if(vibToggle.checked && navigator.vibrate) navigator.vibrate(ms) }
+
+      // tap / click
+      tapArea.addEventListener('click', (e)=>{
+        // prevent click firing after long press
+        if(tapArea.dataset._hold === '1'){ tapArea.dataset._hold='0'; return }
+        count = count + 1; save(); render(); vibrate(10);
+      });
+
+      // long press handling for touch and mouse
+      function startHold(e){
+        if(holdTimer) clearTimeout(holdTimer);
+        holdTimer = setTimeout(()=>{
+          tapArea.dataset._hold='1';
+          if(confirm('Reset counter to 0?')){ count=0; save(); render(); }
+        }, HOLD_TIME);
+      }
+      function cancelHold(e){ if(holdTimer) clearTimeout(holdTimer); holdTimer=null }
+
+      tapArea.addEventListener('touchstart', startHold);
+      tapArea.addEventListener('touchend', cancelHold);
+      tapArea.addEventListener('mousedown', startHold);
+      tapArea.addEventListener('mouseup', cancelHold);
+      tapArea.addEventListener('mouseleave', cancelHold);
+
+      // reset button
+      resetBtn.addEventListener('click', ()=>{
+        if(confirm('Reset counter to 0?')){ count=0; save(); render(); }
+      })
+
+      // toggle mode
+      toggleMode.addEventListener('click', ()=>{
+        useImage = !useImage; saveMode(); render(); vibrate(20);
+      })
+
+      // image upload
+      imgUpload.addEventListener('change', (ev)=>{
+        const f = ev.target.files && ev.target.files[0];
+        if(!f) return;
+        const reader = new FileReader();
+        reader.onload = function(){ centerImage.src = reader.result; try{ localStorage.setItem(IMAGE_KEY, reader.result) }catch(e){} render(); }
+        reader.readAsDataURL(f);
+      });
+
+      // keyboard accessibility: space or enter to increment
+      tapArea.addEventListener('keydown', (e)=>{
+        if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); count = count + 1; save(); render(); vibrate(10); }
+      });
+
+      // initial render
+      render();
+
+      // expose for debugging
+      window.__radha = {getCount:()=>count,setCount:(v)=>{count=v;save();render()}}
+    })();
+  </script>
+</body>
+</html>
