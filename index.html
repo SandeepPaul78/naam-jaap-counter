@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -47,7 +48,7 @@
     }
     .tap-area:active{transform:scale(.997)}
     .center-image{width:260px;height:330px;object-fit:cover;border-radius:10px;}
-    .radha-text{font-size:84px;color:rgb(231, 201, 134);font-weight:900;letter-spacing:6px;}
+    .radha-text{font-size:84px;color:gold;font-weight:900;letter-spacing:6px;}
 
     .counter-pill{position:absolute;bottom:18px;display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:999px;background:var(--pill-bg);color:var(--pill-text);font-weight:800;font-size:24px;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
 
@@ -70,11 +71,10 @@
 <body>
   <div class="app" role="application" aria-label="Radha Jap Counter">
     <div class="header">
-      <div class="title">Radha Jap</div>
+      <div class="title">Radha Jap — नाम जप</div>
       <div class="controls">
         <button id="toggleMode" class="btn" title="Toggle Image/Text">Image</button>
         <button id="resetBtn" class="btn btn-danger" title="Reset counter">Reset</button>
-         <button id="installBtn" class="btn" style="display:none;">Install App</button>
       </div>
     </div>
 
@@ -97,37 +97,6 @@
 
   <script>
     (function(){
-
-       const installBtn = document.getElementById('installBtn');
-  let deferredPrompt;
-
-  function showInstallButton(){
-    installBtn.style.display = 'inline-block';
-  }
-
-  function hideInstallButton(){
-    installBtn.style.display = 'none';
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallButton();
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if(deferredPrompt){
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if(outcome === 'accepted'){
-        console.log('User accepted the install prompt');
-      } else {
-        console.log('User dismissed the install prompt');
-      }
-      deferredPrompt = null;
-      hideInstallButton();
-    }
-  });
       const STORAGE_KEY = 'radha_jap_count_v1';
       const MODE_KEY = 'radha_jap_mode_v1';
       const IMAGE_KEY = 'radha_jap_image_v1';
@@ -200,7 +169,6 @@
       // expose for debugging
       window.__radha = {getCount:()=>count,setCount:(v)=>{count=v;save();render()}}
     })();
-   
   </script>
 </body>
 </html>
