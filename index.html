@@ -111,8 +111,7 @@
 
       let count = 0;
       let useImage = true;
-      let holdTimer = null;
-      const HOLD_TIME = 800; // ms to consider long press
+    
 
       // load
       try { const saved = localStorage.getItem(STORAGE_KEY); if(saved) count = parseInt(saved,10)||0 } catch(e){}
@@ -137,21 +136,7 @@
         count = count + 1; save(); render(); vibrate(10);
       });
 
-      // long press handling for touch and mouse
-      function startHold(e){
-        if(holdTimer) clearTimeout(holdTimer);
-        holdTimer = setTimeout(()=>{
-          tapArea.dataset._hold='1';
-          if(confirm('Reset counter to 0?')){ count=0; save(); render(); }
-        }, HOLD_TIME);
-      }
-      function cancelHold(e){ if(holdTimer) clearTimeout(holdTimer); holdTimer=null }
-
-      tapArea.addEventListener('touchstart', startHold);
-      tapArea.addEventListener('touchend', cancelHold);
-      tapArea.addEventListener('mousedown', startHold);
-      tapArea.addEventListener('mouseup', cancelHold);
-      tapArea.addEventListener('mouseleave', cancelHold);
+    
 
       // reset button
       resetBtn.addEventListener('click', ()=>{
