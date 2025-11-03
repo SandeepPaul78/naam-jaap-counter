@@ -168,6 +168,28 @@
       // expose for debugging
       window.__radha = {getCount:()=>count,setCount:(v)=>{count=v;save();render()}}
     })();
+    let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton(); // UI में इंस्टॉल बटन दिखाओ
+});
+
+installBtn.addEventListener('click', async () => {
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted'){
+      console.log('User accepted the install prompt');
+    } else {
+      console.log('User dismissed the install prompt');
+    }
+    deferredPrompt = null;
+    hideInstallButton();
+  }
+});
+
   </script>
 </body>
 </html>
