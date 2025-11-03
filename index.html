@@ -74,6 +74,7 @@
       <div class="controls">
         <button id="toggleMode" class="btn" title="Toggle Image/Text">Image</button>
         <button id="resetBtn" class="btn btn-danger" title="Reset counter">Reset</button>
+         <button id="installBtn" class="btn" style="display:none;">Install App</button>
       </div>
     </div>
 
@@ -96,6 +97,37 @@
 
   <script>
     (function(){
+
+       const installBtn = document.getElementById('installBtn');
+  let deferredPrompt;
+
+  function showInstallButton(){
+    installBtn.style.display = 'inline-block';
+  }
+
+  function hideInstallButton(){
+    installBtn.style.display = 'none';
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallButton();
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if(outcome === 'accepted'){
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      deferredPrompt = null;
+      hideInstallButton();
+    }
+  });
       const STORAGE_KEY = 'radha_jap_count_v1';
       const MODE_KEY = 'radha_jap_mode_v1';
       const IMAGE_KEY = 'radha_jap_image_v1';
@@ -168,28 +200,7 @@
       // expose for debugging
       window.__radha = {getCount:()=>count,setCount:(v)=>{count=v;save();render()}}
     })();
-    let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton(); // UI में इंस्टॉल बटन दिखाओ
-});
-
-installBtn.addEventListener('click', async () => {
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if(outcome === 'accepted'){
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-    deferredPrompt = null;
-    hideInstallButton();
-  }
-});
-
+   
   </script>
 </body>
 </html>
